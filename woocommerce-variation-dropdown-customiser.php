@@ -20,7 +20,9 @@ function mmx_remove_select_text( $args ){
   $variation_dropdown_text = get_option( 'variation_dropdown_text' );
   $variation_dropdown_label = get_option( 'variation_dropdown_label' );
 
-  $args['show_option_none'] =  $variation_dropdown_text . " ";
+  if($variation_dropdown_text){
+    $args['show_option_none'] =  $variation_dropdown_text . " ";
+  }
 
   if($variation_dropdown_label=="yes"){
     $args['show_option_none'] .=  strtolower(wc_attribute_label($args['attribute'],$product));
