@@ -8,14 +8,19 @@ Version: 1.0
 Author URI: http://www.grahamethomson.com
 */
 
+define('WCVDC_ATTRIBUTE_FIELD', 'wcvdc_attribute_field');
+
+add_filter('woocommerce_dropdown_variation_attribute_options_args', 'wcvdc_dropdown_choice', 10);
+add_filter('woocommerce_get_sections_products', 'wcvdc_dropdown_section' );
+add_filter('woocommerce_get_settings_products', 'wcvdc_dropdown_settings', 10, 2 );
+add_action('woocommerce_after_product_attribute_settings', 'wcvdc_attribute_settings', 10, 2 );
+add_action('wp_ajax_woocommerce_save_attributes', 'wcvdc_ajax_save_attributes');
 
 
-add_filter( 'woocommerce_dropdown_variation_attribute_options_args', 'mmx_remove_select_text', 10);
-add_filter( 'woocommerce_get_sections_products', 'woorei_mysettings_add_section' );
-add_filter( 'woocommerce_get_settings_products', 'wcslider_all_settings', 10, 2 );
-
-function mmx_remove_select_text( $args ){
+// Displays the custom "Choose an option" on the front end
+function wcvdc_dropdown_choice( $args ){
   global $product;
+  global $post;
 
   $variation_dropdown_text = get_option( 'variation_dropdown_text' );
   $variation_dropdown_label = get_option( 'variation_dropdown_label' );
@@ -28,16 +33,37 @@ function mmx_remove_select_text( $args ){
     $args['show_option_none'] .=  strtolower(wc_attribute_label($args['attribute'],$product));
   }
 
+
+  $dropdownTextAttribute = wcvdc_get_attribute_value($post, $args['attribute'], WCVDC_ATTRIBUTE_FIELD);
+
+
+  if($dropdownTextAttribute){
+    $args['show_option_none'] = $dropdownTextAttribute;
+  }
+
+
   return $args;
 }
 
 
-function woorei_mysettings_add_section( $sections ) {
+function wcvdc_get_attribute_value($post, $attributeName, $attributefield){
+
+  $postMeta = get_post_meta($post->ID, '_' . $attributefield);
+  $dropdownText = array_shift($postMeta) ?: array();
+  $dropdownTextAttribute = $dropdownText[$attributeName];
+
+  return $dropdownTextAttribute;
+
+}
+
+
+function wcvdc_dropdown_section( $sections ) {
   $sections['woocommerce-variation-dropdown-customiser'] = __( "Variation Dropdown Settings", 'text-domain' );
   return $sections;
 }
 
-function wcslider_all_settings( $settings, $current_section ) {
+// Add settings to woocommerce
+function wcvdc_dropdown_settings( $settings, $current_section ) {
 
   //Check if is the section we are looking for.
   if ( $current_section == 'woocommerce-variation-dropdown-customiser' ) {
@@ -66,7 +92,37 @@ function wcslider_all_settings( $settings, $current_section ) {
 
   }
 
-
   return $settings;
 
+}
+
+// Show the custom attribut settings
+function wcvdc_attribute_settings($attribute, $i) {
+    global $post;
+    $dropdownTextAttribute = wcvdc_get_attribute_value($post, $attribute->get_name(), WCVDC_ATTRIBUTE_FIELD);
+    echo '
+        <tr>
+            <td>
+                <label>
+                    <input type="text" class="" name="' . WCVDC_ATTRIBUTE_FIELD . '[' . $i . ']"
+                    value="' . $dropdownTextAttribute. '">Dropdown text.
+                </label>
+            </td>
+        </tr>
+    ';
+}
+
+
+// Save the custom attribute data
+function wcvdc_ajax_save_attributes() {
+    parse_str($_POST['data'], $data);
+    $product_id = absint($_POST['post_id']);
+    $value_Attributes = array();
+    $attributes = $data['attribute_names'];
+    foreach ($attributes as $key => $attribute) {
+        if (isset($data[WCVDC_ATTRIBUTE_FIELD][$key])) {
+            $value_Attributes[$attribute] = $data[WCVDC_ATTRIBUTE_FIELD][$key];
+        }
+    }
+    update_post_meta($product_id, '_' . WCVDC_ATTRIBUTE_FIELD,$value_Attributes);
 }
