@@ -22,8 +22,14 @@ function wcvdc_dropdown_choice( $args ){
   global $product;
   global $post;
 
+  // Get the woocommerce settings
   $variation_dropdown_text = get_option( 'variation_dropdown_text' );
   $variation_dropdown_label = get_option( 'variation_dropdown_label' );
+
+
+  // Get the global setting
+  $global_variation_dropdown_text = get_option( WCVDC_ATTRIBUTE_FIELD . '_global_' . str_replace(' ', '_', strtolower(wc_attribute_label($args['attribute']))));
+
 
   if($variation_dropdown_text){
     $args['show_option_none'] =  $variation_dropdown_text . " ";
@@ -34,6 +40,11 @@ function wcvdc_dropdown_choice( $args ){
   }
 
 
+  if($global_variation_dropdown_text){
+    $args['show_option_none'] = $global_variation_dropdown_text;
+  }
+
+  // Get the product attribute value
   $dropdownTextAttribute = wcvdc_get_attribute_value($post, $args['attribute'], WCVDC_ATTRIBUTE_FIELD);
 
 
@@ -68,6 +79,8 @@ function wcvdc_dropdown_settings( $settings, $current_section ) {
   //Check if is the section we are looking for.
   if ( $current_section == 'woocommerce-variation-dropdown-customiser' ) {
 
+    $global_attributes = wc_get_attribute_taxonomies();
+
     $settings = [];
     $settings[] = array( 'name' => __( 'Variation Dropdown Settings', 'text-domain' ), 'type' => 'title', 'desc' => __( 'Settings to customise the dropdown for vartions.', 'text-domain' ), 'id' => 'woocommerce-variation-dropdown-customiser' );
 
@@ -86,6 +99,19 @@ function wcvdc_dropdown_settings( $settings, $current_section ) {
       'id'       => 'variation_dropdown_label',
       'type'     => 'checkbox',
     );
+
+
+    // Create a field for each global attribute
+    foreach($global_attributes as $global_attribute){
+      $settings[] = array(
+        'name'     => __($global_attribute->attribute_label . ' dropdown: ', 'text-domain' ),
+        'desc_tip' => __( 'This will change the dropdown text to choose a varation. Usually this says "choose an option".', 'text-domain' ),
+        'id'       => WCVDC_ATTRIBUTE_FIELD . '_global_'. str_replace(' ', '_', strtolower($global_attribute->attribute_label)),
+        'type'     => 'text',
+      );
+
+    }
+
 
     $settings[] = array( 'type' => 'sectionend', 'id' => 'woocommerce-variation-dropdown-customiser' );
 
