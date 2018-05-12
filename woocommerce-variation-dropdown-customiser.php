@@ -24,9 +24,8 @@ function wcvdc_hide_attribute_labels(){
 
   if($variation_label_hide=="yes"){
 
-    // If we could get the attribute positon then we could target the nth using css
     echo '<style>';
-    echo '.woocommerce .variations .label{ display: none;}'; //Display none for everything
+    echo '.woocommerce .variations .label{ display: none;}';
     echo '</style';
 
   }
