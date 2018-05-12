@@ -15,6 +15,23 @@ add_filter('woocommerce_get_sections_products', 'wcvdc_dropdown_section' );
 add_filter('woocommerce_get_settings_products', 'wcvdc_dropdown_settings', 10, 2 );
 add_action('woocommerce_after_product_attribute_settings', 'wcvdc_attribute_settings', 10, 2 );
 add_action('wp_ajax_woocommerce_save_attributes', 'wcvdc_ajax_save_attributes');
+add_action('wp_head', 'wcvdc_hide_attribute_labels');
+
+
+function wcvdc_hide_attribute_labels(){
+
+  $variation_label_hide = get_option( 'variation_label_hide' );
+
+  if($variation_label_hide=="yes"){
+
+    // If we could get the attribute positon then we could target the nth using css
+    echo '<style>';
+    echo '.woocommerce .variations .label{ display: none;}'; //Display none for everything
+    echo '</style';
+
+  }
+
+}
 
 
 // Displays the custom "Choose an option" on the front end
@@ -97,6 +114,14 @@ function wcvdc_dropdown_settings( $settings, $current_section ) {
       'name'     => __('Use attribute name: ', 'text-domain' ),
       'desc_tip' => __( 'Check this box to automatically use the attribute name after the dropdown text e.g. "Chose an {attribute name}."', 'text-domain' ),
       'id'       => 'variation_dropdown_label',
+      'type'     => 'checkbox',
+    );
+
+    // Add option to remove label before dropdown.
+    $settings[] = array(
+      'name'     => __('Hide variation label: ', 'text-domain' ),
+      'desc_tip' => __( 'Check this box to hide the label before the dropdown.', 'text-domain' ),
+      'id'       => 'variation_label_hide',
       'type'     => 'checkbox',
     );
 
