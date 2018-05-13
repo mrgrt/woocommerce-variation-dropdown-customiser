@@ -15,10 +15,37 @@ add_filter('woocommerce_get_sections_products', 'wcvdc_dropdown_section' );
 add_filter('woocommerce_get_settings_products', 'wcvdc_dropdown_settings', 10, 2 );
 add_action('woocommerce_after_product_attribute_settings', 'wcvdc_attribute_settings', 10, 2 );
 add_action('wp_ajax_woocommerce_save_attributes', 'wcvdc_ajax_save_attributes');
-add_action('wp_head', 'wcvdc_hide_attribute_labels');
+add_action('wp_head', 'wcvdc_hide_display_attribute_labels');
 
 
-function wcvdc_hide_attribute_labels(){
+function wcvdc_hide_display_attribute_labels(){
+
+  $product = wc_get_product();
+
+  $product_variations = $product->get_variation_attributes();
+
+  echo '<style>';
+  foreach($product_variations as $key => $product_attribute){
+      $attribute_position = array_search($key, array_keys($product_variations)) + 1;
+      $global_variation_label_hide = get_option(  WCVDC_ATTRIBUTE_FIELD . '_global_label_hide_'. str_replace(' ', '_', strtolower(wc_attribute_label($key))));
+      // Add check in here if should show/hide
+      if($global_variation_label_hide){
+
+        if($global_variation_label_hide=="show"){
+          $display = "block";
+        }elseif($global_variation_label_hide=="hide"){
+          $display = "none";
+        }
+        // Only display this css if we're not going to inherit the value from the default setting
+        if($global_variation_label_hide!="default"){
+            echo '.woocommerce .variations tr:nth-of-type(' . $attribute_position .') .label{ display: ' . $display .';}';
+        }
+
+      }
+
+  }
+  echo '</style>';
+
 
   $variation_label_hide = get_option( 'variation_label_hide' );
 
@@ -37,6 +64,7 @@ function wcvdc_hide_attribute_labels(){
 function wcvdc_dropdown_choice( $args ){
   global $product;
   global $post;
+
 
   // Get the woocommerce settings
   $variation_dropdown_text = get_option( 'variation_dropdown_text' );
@@ -118,7 +146,7 @@ function wcvdc_dropdown_settings( $settings, $current_section ) {
 
     // Add option to remove label before dropdown.
     $settings[] = array(
-      'name'     => __('Hide variation label: ', 'text-domain' ),
+      'name'     => __('Hide variation labels: ', 'text-domain' ),
       'desc_tip' => __( 'Check this box to hide the label before the dropdown.', 'text-domain' ),
       'id'       => 'variation_label_hide',
       'type'     => 'checkbox',
@@ -127,11 +155,24 @@ function wcvdc_dropdown_settings( $settings, $current_section ) {
 
     // Create a field for each global attribute
     foreach($global_attributes as $global_attribute){
+
       $settings[] = array(
         'name'     => __($global_attribute->attribute_label . ' dropdown: ', 'text-domain' ),
         'desc_tip' => __( 'This will change the dropdown text to choose a varation. Usually this says "choose an option".', 'text-domain' ),
         'id'       => WCVDC_ATTRIBUTE_FIELD . '_global_'. str_replace(' ', '_', strtolower($global_attribute->attribute_label)),
         'type'     => 'text',
+      );
+
+      $settings[] = array(
+        'name'     => __($global_attribute->attribute_label . ' label: ', 'text-domain' ),
+        'desc_tip' => __( 'This will hide/show the label for this global attribute.', 'text-domain' ),
+        'id'       => WCVDC_ATTRIBUTE_FIELD . '_global_label_hide_'. str_replace(' ', '_', strtolower($global_attribute->attribute_label)),
+        'type'     => 'select',
+        'options'  => array(
+						'default' => __( 'Choose an option', 'text-domain' ),
+						'show'   => __( 'Show Label', 'text-domain' ),
+						'hide'   => __( 'Hide Label', 'woocommerce-deposits' )
+					)
       );
 
     }
