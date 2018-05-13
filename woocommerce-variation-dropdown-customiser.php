@@ -10,13 +10,17 @@ Author URI: http://www.grahamethomson.com
 
 define('WCVDC_ATTRIBUTE_FIELD', 'wcvdc_attribute_field');
 
-add_filter('woocommerce_dropdown_variation_attribute_options_args', 'wcvdc_dropdown_choice', 10);
-add_filter('woocommerce_get_sections_products', 'wcvdc_dropdown_section' );
-add_filter('woocommerce_get_settings_products', 'wcvdc_dropdown_settings', 10, 2 );
-add_action('woocommerce_after_product_attribute_settings', 'wcvdc_attribute_settings', 10, 2 );
-add_action('wp_ajax_woocommerce_save_attributes', 'wcvdc_ajax_save_attributes');
-add_action('wp_head', 'wcvdc_hide_display_attribute_labels');
 
+if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+
+  add_filter('woocommerce_dropdown_variation_attribute_options_args', 'wcvdc_dropdown_choice', 10);
+  add_filter('woocommerce_get_sections_products', 'wcvdc_dropdown_section' );
+  add_filter('woocommerce_get_settings_products', 'wcvdc_dropdown_settings', 10, 2 );
+  add_action('woocommerce_after_product_attribute_settings', 'wcvdc_attribute_settings', 10, 2 );
+  add_action('wp_ajax_woocommerce_save_attributes', 'wcvdc_ajax_save_attributes');
+  add_action('wp_head', 'wcvdc_hide_display_attribute_labels');
+
+}
 
 function wcvdc_hide_display_attribute_labels(){
 
