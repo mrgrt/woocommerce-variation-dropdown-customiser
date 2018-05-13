@@ -20,40 +20,52 @@ add_action('wp_head', 'wcvdc_hide_display_attribute_labels');
 
 function wcvdc_hide_display_attribute_labels(){
 
-  $product = wc_get_product();
+  if(get_post_type()=="product"){
 
-  $product_variations = $product->get_variation_attributes();
 
-  echo '<style>';
-  foreach($product_variations as $key => $product_attribute){
-      $attribute_position = array_search($key, array_keys($product_variations)) + 1;
-      $global_variation_label_hide = get_option(  WCVDC_ATTRIBUTE_FIELD . '_global_label_hide_'. str_replace(' ', '_', strtolower(wc_attribute_label($key))));
-      // Add check in here if should show/hide
-      if($global_variation_label_hide){
+    $product = wc_get_product();
 
-        if($global_variation_label_hide=="show"){
-          $display = "block";
-        }elseif($global_variation_label_hide=="hide"){
-          $display = "none";
-        }
-        // Only display this css if we're not going to inherit the value from the default setting
-        if($global_variation_label_hide!="default"){
+    if($product->is_type("variable")){
+
+      $product_variations = $product->get_variation_attributes();
+
+      echo '<style>';
+
+      foreach($product_variations as $key => $product_attribute){
+        $attribute_position = array_search($key, array_keys($product_variations)) + 1;
+        $global_variation_label_hide = get_option(  WCVDC_ATTRIBUTE_FIELD . '_global_label_hide_'. str_replace(' ', '_', strtolower(wc_attribute_label($key))));
+        // Add check in here if should show/hide
+        if($global_variation_label_hide){
+
+          if($global_variation_label_hide=="show"){
+            $display = "block";
+          }elseif($global_variation_label_hide=="hide"){
+            $display = "none";
+          }
+          // Only display this css if we're not going to inherit the value from the default setting
+          if($global_variation_label_hide!="default"){
             echo '.woocommerce .variations tr:nth-of-type(' . $attribute_position .') .label{ display: ' . $display .';}';
+          }
+
         }
 
       }
 
-  }
-  echo '</style>';
+      echo '</style>';
 
 
-  $variation_label_hide = get_option( 'variation_label_hide' );
+      $variation_label_hide = get_option( 'variation_label_hide' );
 
-  if($variation_label_hide=="yes"){
+      if($variation_label_hide=="yes"){
 
-    echo '<style>';
-    echo '.woocommerce .variations .label{ display: none;}';
-    echo '</style';
+        echo '<style>';
+        echo '.woocommerce .variations .label{ display: none;}';
+        echo '</style';
+
+      }
+
+    }
+
 
   }
 
